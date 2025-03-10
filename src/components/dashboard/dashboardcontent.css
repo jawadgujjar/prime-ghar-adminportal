@@ -1,0 +1,57 @@
+.dashboard-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    padding: 20px;
+  }
+  
+  .card-container {
+    display: flex;
+    justify-content: space-evenly;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .dashboard-card {
+    background-color: #f7f7f7; /* Light grey background for cards */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Light shadow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transition for hover effect */
+  }
+  
+  .dashboard-card:hover {
+    transform: translateY(-5px); /* Slightly lift the card */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
+  }
+  
+  .dashboard-card h2 {
+    text-align: center;
+    font-size: 2rem; /* Increase font size for better readability */
+    color: #4caf50; /* Green color for numbers */
+    font-weight: 600; /* Bold the number */
+    margin-top: 20px; /* Add spacing on top */
+    animation: fadeIn 1s ease-out; /* Animation for card content */
+  }
+  
+  /* Fade-in animation */
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  /* Card Titles */
+  .dashboard-card .ant-card-head {
+    background-color: #3b7dd8; /* Blue background for card header */
+    color: white; /* White text for titles */
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    padding: 15px;
+  }
+  
