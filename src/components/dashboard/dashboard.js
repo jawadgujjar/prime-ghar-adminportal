@@ -6,6 +6,7 @@ import Contractor from "./contractor"; // Placeholder for Contractor Component
 import { LogoutOutlined } from "@ant-design/icons";
 import "./dashboard.css"; // Import your custom CSS
 import DashboardContent from "./dashboardcontent";
+import ContactUs from "./contactus";
 
 const AdminPortal = () => {
   const [activeContent, setActiveContent] = useState("Dashboard");
@@ -38,6 +39,8 @@ const AdminPortal = () => {
         return <PropertyDealer />; // Renders Property Dealer Screen
       case "Contractor":
         return <Contractor />; // Renders Contractor Screen
+      case "Contact Us":
+        return <ContactUs />; // Renders Contact Us Screen
       default:
         return <div>Dashboard Content</div>; // Default Dashboard content
     }
@@ -58,7 +61,7 @@ const AdminPortal = () => {
           <h3 style={{ fontStyle: "italic" }}>{displayText}</h3> {/* Animated text */}
         </div>
         <nav className="sider-links">
-          {["Dashboard", "User", "Property Dealer", "Contractor"].map((item) => (
+          {["Dashboard", "User", "Property Dealer", "Contractor", "Contact Us"].map((item) => (
             <a
               key={item}
               className={activeContent === item ? "active" : ""}
