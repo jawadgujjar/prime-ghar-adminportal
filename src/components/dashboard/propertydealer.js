@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Space, Modal, Card } from "antd"; // Importing Ant Design components
+import { Table, Button, Space, Modal, Card, message } from "antd"; // Importing Ant Design components
 import { DeleteOutlined, EyeOutlined } from "@ant-design/icons"; // Importing icons for the buttons
-import { user } from "../../utils/axios"; // Adjust this import to your axios setup
+import { user, property } from "../../utils/axios"; // Adjust this import to your axios setup
 
 const PropertyDealer = () => {
-  // State for storing property dealer data, modal visibility, selected dealer, and properties
-  const [dealers, setDealers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedDealer, setSelectedDealer] = useState(null);
-  const [isPropertiesModalVisible, setIsPropertiesModalVisible] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [dealers, setDealers] = useState([]); // Dealer data
+  const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility for dealer details
+  const [selectedDealer, setSelectedDealer] = useState(null); // Selected dealer details
+  const [isPropertiesModalVisible, setIsPropertiesModalVisible] =
+    useState(false); // Modal visibility for properties
+  const [selectedProperty, setSelectedProperty] = useState(null); // Selected property details
+  const [properties, setProperties] = useState([]); // Properties data for a specific dealer
 
   // Fetch dealers from the API when the component mounts
   useEffect(() => {
@@ -18,7 +19,6 @@ const PropertyDealer = () => {
         const response = await user.get("/"); // Get the data from the API
         console.log(response.data); // Check the structure of the response
 
-        // Assuming your API returns a "results" array with various users and roles
         // Filter the data to get only the users where the role is "dealer"
         const filteredDealers = response.data.results.filter(
           (item) => item.role === "dealer"
@@ -33,6 +33,27 @@ const PropertyDealer = () => {
     fetchDealers();
   }, []); // Empty dependency array to fetch data only once on component mount
 
+  // Fetch properties for a selected dealer by user ID
+  const fetchProperties = async (dealerId) => {
+    try {
+      const response = await property.get(`/user/${dealerId}`); // Get properties for the selected dealer
+      console.log(response.data); // Check the structure of the response
+
+      // Check if the response data is an empty array
+      if (Array.isArray(response.data) && response.data.length === 0) {
+        message.info("No properties listed for this dealer."); // Show the info toast message
+        setProperties([]); // Clear properties
+        setIsPropertiesModalVisible(false); // Close the modal if no properties are available
+      } else {
+        setProperties(response.data); // Set the properties data for the selected dealer
+        setIsPropertiesModalVisible(true); // Open the modal to view properties
+      }
+    } catch (error) {
+      message.error("Failed to fetch properties."); // Show error message if API call fails
+      console.error("Error fetching properties:", error);
+    }
+  };
+
   // Handle view dealer click to open modal
   const handleViewDealer = (dealerId) => {
     const dealer = dealers.find((dealer) => dealer.id === dealerId);
@@ -43,8 +64,8 @@ const PropertyDealer = () => {
   // Handle delete dealer click
   const handleDeleteDealer = async (dealerId) => {
     try {
-      // Make API call to delete dealer (update the URL as per your backend setup)
-      await user.delete(`/${dealerId}`); // API call to delete dealer
+      // Make API call to delete dealer
+      await user.delete(`/${dealerId}`);
       setDealers(dealers.filter((dealer) => dealer.id !== dealerId)); // Remove deleted dealer from state
       console.log("Deleted Dealer ID:", dealerId);
     } catch (error) {
@@ -52,19 +73,17 @@ const PropertyDealer = () => {
     }
   };
 
-  // Handle the properties modal close
+  // Handle properties modal close
   const handlePropertiesModalClose = () => {
-    setIsPropertiesModalVisible(false);
-    setSelectedProperty(null);
+    setIsPropertiesModalVisible(false); // Close the modal
+    setSelectedProperty(null); // Clear selected property
+    setProperties([]); // Clear properties when modal is closed
   };
 
   // Handle property card click to view property details
   const handleViewProperty = (propertyId) => {
-    const property = selectedDealer.properties.find(
-      (property) => property.id === propertyId
-    );
+    const property = properties.find((property) => property.id === propertyId);
     setSelectedProperty(property);
-    setIsPropertiesModalVisible(true);
   };
 
   // Table columns definition
@@ -157,7 +176,7 @@ const PropertyDealer = () => {
             </p>
             <Button
               type="primary"
-              onClick={() => setIsPropertiesModalVisible(true)}
+              onClick={() => fetchProperties(selectedDealer.id)} // Fetch properties when clicked
             >
               View Properties
             </Button>
@@ -173,9 +192,9 @@ const PropertyDealer = () => {
         footer={null}
         width={800}
       >
-        {selectedDealer && selectedDealer.properties && (
+        {properties && properties.length > 0 ? (
           <div style={{ display: "flex", flexWrap: "wrap" }}>
-            {selectedDealer.properties.map((property) => (
+            {properties.map((property) => (
               <Card
                 key={property.id}
                 title={property.name}
@@ -183,11 +202,14 @@ const PropertyDealer = () => {
                 cover={<img alt="property" src={property.imageUrl} />}
                 onClick={() => handleViewProperty(property.id)} // Open property detail modal
               >
-                <p>{property.location}</p>
-                <p>Price: ${property.price}</p>
+                <p><strong>Location:</strong> {property.location.city}, {property.location.address}</p>
+                <p><strong>Area:</strong> {property.location.area} {property.location.unit}</p>
+                <p><strong>Price:</strong> ${property.price}</p>
               </Card>
             ))}
           </div>
+        ) : (
+          <p>No properties found for this dealer.</p>
         )}
       </Modal>
 
@@ -200,13 +222,32 @@ const PropertyDealer = () => {
       >
         {selectedProperty && (
           <div>
-            <p><strong>Property Name:</strong> {selectedProperty.name}</p>
-            <p><strong>Location:</strong> {selectedProperty.location}</p>
-            <p><strong>Price:</strong> ${selectedProperty.price}</p>
-            <p><strong>Description:</strong> {selectedProperty.description}</p>
-            <p><strong>Reviews:</strong> {selectedProperty.reviews}</p>
-            <p><strong>Rating:</strong> {selectedProperty.rating}</p>
-            <img alt="property" src={selectedProperty.imageUrl} style={{ width: "100%" }} />
+            <p>
+              <strong>Property Name:</strong> {selectedProperty.name}
+            </p>
+            <p>
+              <strong>Location:</strong> {selectedProperty.location.city}, {selectedProperty.location.address}
+            </p>
+            <p>
+              <strong>Area:</strong> {selectedProperty.location.area} {selectedProperty.location.unit}
+            </p>
+            <p>
+              <strong>Price:</strong> ${selectedProperty.price}
+            </p>
+            <p>
+              <strong>Description:</strong> {selectedProperty.description}
+            </p>
+            <p>
+              <strong>Reviews:</strong> {selectedProperty.reviews}
+            </p>
+            <p>
+              <strong>Rating:</strong> {selectedProperty.rating}
+            </p>
+            <img
+              alt="property"
+              src={selectedProperty.imageUrl}
+              style={{ width: "100%" }}
+            />
           </div>
         )}
       </Modal>
