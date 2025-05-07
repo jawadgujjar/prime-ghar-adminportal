@@ -1,66 +1,81 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Space, Modal, Card } from "antd"; // Importing Ant Design components
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons"; // Importing icons for the buttons
-import { user } from "../../utils/axios"; // Adjust this import to your axios setup
+import { Table, Button, Space, Modal, Card } from "antd";
+import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { property, user } from "../../utils/axios";
+import { useNavigate } from "react-router-dom";
 
 const Contractor = () => {
-  // State for storing contractor data, modal visibility, selected contractor, and portfolio visibility
   const [contractors, setContractors] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedContractor, setSelectedContractor] = useState(null);
   const [isPortfolioModalVisible, setIsPortfolioModalVisible] = useState(false);
+  const [portfolioProperties, setPortfolioProperties] = useState([]);
+  const navigate = useNavigate();
 
-  // Fetch contractors from the API when the component mounts
   useEffect(() => {
     const fetchContractors = async () => {
       try {
-        const response = await user.get("/"); // Get the data from the API
-        console.log(response.data); // Check the structure of the response
-
-        // Assuming your API returns a "results" array with various users and roles
-        // Filter the data to get only the users where the role is "contractor"
+        const response = await user.get("/");
         const filteredContractors = response.data.results.filter(
           (item) => item.role === "contractor"
         );
-
-        setContractors(filteredContractors); // Set the filtered contractors data
+        setContractors(filteredContractors);
       } catch (error) {
         console.error("Error fetching contractors:", error);
       }
     };
 
     fetchContractors();
-  }, []); // Empty dependency array to fetch data only once on component mount
+  }, []);
 
-  // Handle view contractor click to open modal
   const handleViewContractor = (contractorId) => {
-    const contractor = contractors.find((contractor) => contractor.id === contractorId);
+    const contractor = contractors.find((c) => c.id === contractorId);
     setSelectedContractor(contractor);
     setIsModalVisible(true);
   };
 
-  // Handle delete contractor click
   const handleDeleteContractor = async (contractorId) => {
     try {
-      // Make API call to delete contractor (update the URL as per your backend setup)
-      await user.delete(`/${contractorId}`); // API call to delete contractor
-      setContractors(contractors.filter((contractor) => contractor.id !== contractorId)); // Remove deleted contractor from state
-      console.log("Deleted Contractor ID:", contractorId);
+      await user.delete(`/${contractorId}`);
+      setContractors(contractors.filter((c) => c.id !== contractorId));
     } catch (error) {
       console.error("Error deleting contractor:", error);
     }
   };
 
-  // Handle the portfolio modal open/close
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setSelectedContractor(null);
+  };
+
   const handlePortfolioModalClose = () => {
     setIsPortfolioModalVisible(false);
+    setPortfolioProperties([]);
   };
 
-  const handleViewPortfolio = () => {
-    setIsPortfolioModalVisible(true); // Open the portfolio modal
+  const handlePortfolioView = async () => {
+    if (selectedContractor && selectedContractor.id) {
+      try {
+        const response = await property.get(`/user/${selectedContractor.id}`);
+        console.log("Portfolio response:", response.data);
+  
+        // Try different fallbacks in case results isn't present
+        const results =
+          Array.isArray(response.data.results)
+            ? response.data.results
+            : Array.isArray(response.data)
+            ? response.data
+            : [];
+  
+        setPortfolioProperties(results);
+        setIsPortfolioModalVisible(true);
+      } catch (error) {
+        console.error("Error fetching portfolio properties:", error);
+      }
+    }
   };
+  
 
-  // Table columns definition
   const columns = [
     {
       title: "Contractor Name",
@@ -85,14 +100,14 @@ const Contractor = () => {
           <Button
             type="primary"
             icon={<EyeOutlined />}
-            onClick={() => handleViewContractor(record.id)} // Pass contractor id for modal
+            onClick={() => handleViewContractor(record.id)}
           >
-            View Portfolio
+            View Details
           </Button>
           <Button
             danger
             icon={<DeleteOutlined />}
-            onClick={() => handleDeleteContractor(record.id)} // Pass contractor id for delete
+            onClick={() => handleDeleteContractor(record.id)}
           >
             Delete
           </Button>
@@ -101,52 +116,36 @@ const Contractor = () => {
     },
   ];
 
-  // Handle modal close
-  const handleModalClose = () => {
-    setIsModalVisible(false);
-    setSelectedContractor(null);
-  };
-
   return (
     <div>
       <h2>Contractor Management</h2>
       <p>This is where you can manage contractors and their portfolios.</p>
 
-      {/* Table to display contractors */}
       <Table
         columns={columns}
-        dataSource={contractors} // Populate table with contractor data
-        rowKey="id" // Use `id` as the unique key for each row
-        pagination={{ pageSize: 5 }} // Optional: Limit the number of rows per page
+        dataSource={contractors}
+        rowKey="id"
+        pagination={{ pageSize: 5 }}
       />
 
-      {/* Modal to view contractor details */}
+      {/* Contractor Details Modal */}
       <Modal
         title="Contractor Details"
         visible={isModalVisible}
         onCancel={handleModalClose}
-        footer={null} // No footer buttons needed
+        footer={null}
       >
         {selectedContractor && (
           <div>
-            <p>
-              <strong>Name:</strong> {selectedContractor.name}
-            </p>
-            <p>
-              <strong>Email:</strong> {selectedContractor.email}
-            </p>
-            <p>
-              <strong>Phone:</strong> {selectedContractor.phoneNumber}
-            </p>
-            <p>
-              <strong>Agency Name:</strong> {selectedContractor.agencyName}
-            </p>
+            <p><strong>Name:</strong> {selectedContractor.name}</p>
+            <p><strong>Email:</strong> {selectedContractor.email}</p>
+            <p><strong>Phone:</strong> {selectedContractor.phoneNumber}</p>
+            <p><strong>Agency Name:</strong> {selectedContractor.agencyName}</p>
             <p>
               <strong>Agency NTN Number:</strong> {selectedContractor.agencyNtnNumber}
             </p>
             <p>
-              <strong>Agency Address:</strong>{" "}
-              {selectedContractor.agencyAddress &&
+              <strong>Agency Address:</strong> {selectedContractor.agencyAddress &&
                 selectedContractor.agencyAddress
                   .map(
                     (address) =>
@@ -155,38 +154,57 @@ const Contractor = () => {
                   .join(" | ")}
             </p>
 
-            {/* View Portfolio button */}
-            <Button type="primary" onClick={handleViewPortfolio}>
-              View Portfolio
+            <Button type="primary" onClick={handlePortfolioView}>
+              View Portfolio Properties
             </Button>
           </div>
         )}
       </Modal>
 
-      {/* Portfolio Modal to display portfolio */}
+      {/* Portfolio Properties Modal */}
       <Modal
-        title="Contractor Portfolio"
-        visible={isPortfolioModalVisible}
-        onCancel={handlePortfolioModalClose}
-        footer={null}
-        width={800}
-      >
-        {selectedContractor && selectedContractor.portfolio && (
-          <div style={{ display: "flex", flexWrap: "wrap" }}>
-            {selectedContractor.portfolio.map((item) => (
-              <Card
-                key={item.id}
-                title={item.name}
-                style={{ width: 240, margin: "10px" }}
-                cover={<img alt="portfolio" src={item.imageUrl} />}
-              >
-                <p>{item.description}</p>
-                <p>Price: ${item.price}</p>
-              </Card>
-            ))}
-          </div>
-        )}
-      </Modal>
+  title="Portfolio Properties"
+  visible={isPortfolioModalVisible}
+  onCancel={handlePortfolioModalClose}
+  footer={null}
+  width={900}
+>
+  {portfolioProperties?.length > 0 ? (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+      {portfolioProperties.map((item) => (
+        <Card
+          key={item.id}
+          title={item.title}
+          style={{ width: 250 }}
+          cover={
+            <img
+              alt={item.title}
+              src={item.images?.[0] || "/placeholder.jpg"}
+              style={{ height: 150, objectFit: "cover" }}
+            />
+          }
+        >
+          <p><strong>Price:</strong> ${item.price}</p>
+          <p>
+            <strong>Location:</strong>{" "}
+            {item.location?.city}, {item.location?.address}
+          </p>
+          <p>
+            <strong>Area:</strong>{" "}
+            {item.location?.area} {item.location?.unit}
+          </p>
+          <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
+          <p><strong>Bathrooms:</strong> {item.features?.bathrooms}</p>
+          <p><strong>Floors:</strong> {item.features?.floors}</p>
+          <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p>
+        </Card>
+      ))}
+    </div>
+  ) : (
+    <p>No portfolio properties foundsssssss.</p>
+  )}
+</Modal>
+
     </div>
   );
 };

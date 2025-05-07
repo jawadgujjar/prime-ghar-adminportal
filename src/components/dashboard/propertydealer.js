@@ -6,6 +6,9 @@ import { user, property } from "../../utils/axios"; // Adjust this import to you
 const PropertyDealer = () => {
   const [dealers, setDealers] = useState([]); // Dealer data
   const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility for dealer details
+  const [portfolioProperties, setPortfolioProperties] = useState([]);
+  const [isPortfolioModalVisible, setIsPortfolioModalVisible] = useState(false);
+  
   const [selectedDealer, setSelectedDealer] = useState(null); // Selected dealer details
   const [isPropertiesModalVisible, setIsPropertiesModalVisible] =
     useState(false); // Modal visibility for properties
@@ -34,25 +37,45 @@ const PropertyDealer = () => {
   }, []); // Empty dependency array to fetch data only once on component mount
 
   // Fetch properties for a selected dealer by user ID
-  const fetchProperties = async (dealerId) => {
-    try {
-      const response = await property.get(`/user/${dealerId}`); // Get properties for the selected dealer
-      console.log(response.data); // Check the structure of the response
+  // const fetchProperties = async (dealerId) => {
+  //   try {
+  //     const response = await property.get(`/user/${dealerId}`); // Get properties for the selected dealer
+  //     console.log(response.data); // Check the structure of the response
 
-      // Check if the response data is an empty array
-      if (Array.isArray(response.data) && response.data.length === 0) {
-        message.info("No properties listed for this dealer."); // Show the info toast message
-        setProperties([]); // Clear properties
-        setIsPropertiesModalVisible(false); // Close the modal if no properties are available
-      } else {
-        setProperties(response.data); // Set the properties data for the selected dealer
-        setIsPropertiesModalVisible(true); // Open the modal to view properties
+  //     // Check if the response data is an empty array
+  //     if (Array.isArray(response.data) && response.data.length === 0) {
+  //       message.info("No properties listed for this dealer."); // Show the info toast message
+  //       setProperties([]); // Clear properties
+  //       setIsPropertiesModalVisible(false); // Close the modal if no properties are available
+  //     } else {
+  //       setProperties(response.data); // Set the properties data for the selected dealer
+  //       setIsPropertiesModalVisible(true); // Open the modal to view properties
+  //     }
+  //   } catch (error) {
+  //     message.error("Failed to fetch properties."); // Show error message if API call fails
+  //     console.error("Error fetching properties:", error);
+  //   }
+  // };
+  const handlePortfolioView = async () => {
+    if (selectedDealer && selectedDealer.id) {
+      try {
+        const response = await property.get(`/user/${selectedDealer.id}`);
+        console.log("Portfolio dealer response:", response.data);
+  
+        const results =
+          Array.isArray(response.data.results)
+            ? response.data.results
+            : Array.isArray(response.data)
+            ? response.data
+            : [];
+  
+        setPortfolioProperties(results);
+        setIsPortfolioModalVisible(true);
+      } catch (error) {
+        console.error("Error fetching portfolio properties:", error);
       }
-    } catch (error) {
-      message.error("Failed to fetch properties."); // Show error message if API call fails
-      console.error("Error fetching properties:", error);
     }
-  };
+  };  
 
   // Handle view dealer click to open modal
   const handleViewDealer = (dealerId) => {
@@ -84,6 +107,10 @@ const PropertyDealer = () => {
   const handleViewProperty = (propertyId) => {
     const property = properties.find((property) => property.id === propertyId);
     setSelectedProperty(property);
+  };
+  const handlePortfolioModalClose = () => {
+    setIsPortfolioModalVisible(false);
+    setPortfolioProperties([]);
   };
 
   // Table columns definition
@@ -174,11 +201,8 @@ const PropertyDealer = () => {
             <p>
               <strong>Rating:</strong> {selectedDealer.rating}
             </p>
-            <Button
-              type="primary"
-              onClick={() => fetchProperties(selectedDealer.id)} // Fetch properties when clicked
-            >
-              View Properties
+            <Button type="primary" onClick={handlePortfolioView}>
+              View dealer Properties
             </Button>
           </div>
         )}
@@ -202,9 +226,17 @@ const PropertyDealer = () => {
                 cover={<img alt="property" src={property.imageUrl} />}
                 onClick={() => handleViewProperty(property.id)} // Open property detail modal
               >
-                <p><strong>Location:</strong> {property.location.city}, {property.location.address}</p>
-                <p><strong>Area:</strong> {property.location.area} {property.location.unit}</p>
-                <p><strong>Price:</strong> ${property.price}</p>
+                <p>
+                  <strong>Location:</strong> {property.location.city},{" "}
+                  {property.location.address}
+                </p>
+                <p>
+                  <strong>Area:</strong> {property.location.area}{" "}
+                  {property.location.unit}
+                </p>
+                <p>
+                  <strong>Price:</strong> ${property.price}
+                </p>
               </Card>
             ))}
           </div>
@@ -226,10 +258,12 @@ const PropertyDealer = () => {
               <strong>Property Name:</strong> {selectedProperty.name}
             </p>
             <p>
-              <strong>Location:</strong> {selectedProperty.location.city}, {selectedProperty.location.address}
+              <strong>Location:</strong> {selectedProperty.location.city},{" "}
+              {selectedProperty.location.address}
             </p>
             <p>
-              <strong>Area:</strong> {selectedProperty.location.area} {selectedProperty.location.unit}
+              <strong>Area:</strong> {selectedProperty.location.area}{" "}
+              {selectedProperty.location.unit}
             </p>
             <p>
               <strong>Price:</strong> ${selectedProperty.price}
@@ -249,6 +283,49 @@ const PropertyDealer = () => {
               style={{ width: "100%" }}
             />
           </div>
+        )}
+      </Modal>
+
+       <Modal
+        title="Portfolio Properties"
+        visible={isPortfolioModalVisible}
+        onCancel={handlePortfolioModalClose}
+        footer={null}
+        width={900}
+      >
+        {portfolioProperties?.length > 0 ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+            {portfolioProperties.map((item) => (
+              <Card
+                key={item.id}
+                title={item.title}
+                style={{ width: 250 }}
+                cover={
+                  <img
+                    alt={item.title}
+                    src={item.images?.[0] || "/placeholder.jpg"}
+                    style={{ height: 150, objectFit: "cover" }}
+                  />
+                }
+              >
+                <p><strong>Price:</strong> ${item.price}</p>
+                <p>
+                  <strong>Location:</strong>{" "}
+                  {item.location?.city}, {item.location?.address}
+                </p>
+                <p>
+                  <strong>Area:</strong>{" "}
+                  {item.location?.area} {item.location?.unit}
+                </p>
+                <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
+                <p><strong>Bathrooms:</strong> {item.features?.bathrooms}</p>
+                <p><strong>Floors:</strong> {item.features?.floors}</p>
+                <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <p>No portfolio properties foundsssssss.</p>
         )}
       </Modal>
     </div>
