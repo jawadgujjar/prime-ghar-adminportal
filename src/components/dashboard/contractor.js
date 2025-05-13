@@ -58,15 +58,14 @@ const Contractor = () => {
       try {
         const response = await property.get(`/user/${selectedContractor.id}`);
         console.log("Portfolio response:", response.data);
-  
+
         // Try different fallbacks in case results isn't present
-        const results =
-          Array.isArray(response.data.results)
-            ? response.data.results
-            : Array.isArray(response.data)
-            ? response.data
-            : [];
-  
+        const results = Array.isArray(response.data.results)
+          ? response.data.results
+          : Array.isArray(response.data)
+          ? response.data
+          : [];
+
         setPortfolioProperties(results);
         setIsPortfolioModalVisible(true);
       } catch (error) {
@@ -74,7 +73,6 @@ const Contractor = () => {
       }
     }
   };
-  
 
   const columns = [
     {
@@ -137,15 +135,25 @@ const Contractor = () => {
       >
         {selectedContractor && (
           <div>
-            <p><strong>Name:</strong> {selectedContractor.name}</p>
-            <p><strong>Email:</strong> {selectedContractor.email}</p>
-            <p><strong>Phone:</strong> {selectedContractor.phoneNumber}</p>
-            <p><strong>Agency Name:</strong> {selectedContractor.agencyName}</p>
             <p>
-              <strong>Agency NTN Number:</strong> {selectedContractor.agencyNtnNumber}
+              <strong>Name:</strong> {selectedContractor.name}
             </p>
             <p>
-              <strong>Agency Address:</strong> {selectedContractor.agencyAddress &&
+              <strong>Email:</strong> {selectedContractor.email}
+            </p>
+            <p>
+              <strong>Phone:</strong> {selectedContractor.phoneNumber}
+            </p>
+            <p>
+              <strong>Agency Name:</strong> {selectedContractor.agencyName}
+            </p>
+            <p>
+              <strong>Agency NTN Number:</strong>{" "}
+              {selectedContractor.agencyNtnNumber}
+            </p>
+            <p>
+              <strong>Agency Address:</strong>{" "}
+              {selectedContractor.agencyAddress &&
                 selectedContractor.agencyAddress
                   .map(
                     (address) =>
@@ -163,48 +171,51 @@ const Contractor = () => {
 
       {/* Portfolio Properties Modal */}
       <Modal
-  title="Portfolio Properties"
-  visible={isPortfolioModalVisible}
-  onCancel={handlePortfolioModalClose}
-  footer={null}
-  width={900}
->
-  {portfolioProperties?.length > 0 ? (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-      {portfolioProperties.map((item) => (
-        <Card
-          key={item.id}
-          title={item.title}
-          style={{ width: 250 }}
-          cover={
-            <img
-              alt={item.title}
-              src={item.images?.[0] || "/placeholder.jpg"}
-              style={{ height: 150, objectFit: "cover" }}
-            />
-          }
-        >
-          <p><strong>Price:</strong> ${item.price}</p>
-          <p>
-            <strong>Location:</strong>{" "}
-            {item.location?.city}, {item.location?.address}
-          </p>
-          <p>
-            <strong>Area:</strong>{" "}
-            {item.location?.area} {item.location?.unit}
-          </p>
-          {/* <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
+        title="Portfolio Properties"
+        visible={isPortfolioModalVisible}
+        onCancel={handlePortfolioModalClose}
+        footer={null}
+        width={900}
+      >
+        {portfolioProperties?.length > 0 ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+            {portfolioProperties.map((item) => (
+              <Card
+                key={item.id}
+                title={item.title}
+                style={{ width: 250 }}
+                cover={
+                  <img
+                    alt={item.title}
+                    src={item.images?.[0] || "/placeholder.jpg"}
+                    style={{ height: 150, objectFit: "cover" }}
+                  />
+                }
+              >
+                <p>
+                  <strong>Price:</strong> ${item.price}
+                </p>
+                <p>
+                  <strong>Location:</strong> {item.location?.city},{" "}
+                  {item.location?.address}
+                </p>
+                <p>
+                  <strong>Area:</strong> {item.location?.area}{" "}
+                  {item.location?.unit}
+                </p>
+                {/* <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
           <p><strong>Bathrooms:</strong> {item.features?.bathrooms}</p> */}
-          <p><strong>Floors:</strong> {item.features?.floors}</p>
-          {/* <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p> */}
-        </Card>
-      ))}
-    </div>
-  ) : (
-    <p>No portfolio properties foundss.</p>
-  )}
-</Modal>
-
+                <p>
+                  <strong>Floors:</strong> {item.features?.floors}
+                </p>
+                {/* <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p> */}
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <p>No portfolio properties foundss.</p>
+        )}
+      </Modal>
     </div>
   );
 };

@@ -12,6 +12,12 @@ const contactus = axios.create({
 const property = axios.create({
   baseURL: `${baseURL}/property`, // Ensure this is the correct endpoint for login
 });
+const login = axios.create({
+  baseURL: `${baseURL}/auth`, // Ensure this is the correct endpoint for login
+});
+const signup = axios.create({
+  baseURL: `${baseURL}/auth`,
+});
 // Generic request interceptor for all instances
 const requestInterceptor = (req) => {
   // Optionally add authorization headers or custom logic
@@ -28,5 +34,7 @@ const errorInterceptor = (err) => {
 user.interceptors.request.use(requestInterceptor, errorInterceptor);
 contactus.interceptors.request.use(requestInterceptor, errorInterceptor);
 property.interceptors.request.use(requestInterceptor, errorInterceptor);
+signup.interceptors.request.use(requestInterceptor, errorInterceptor);
+login.interceptors.request.use(requestInterceptor, errorInterceptor);
 
-export { user,contactus,property };
+export { user,contactus,property,login,signup };
