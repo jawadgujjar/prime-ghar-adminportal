@@ -193,15 +193,15 @@ const Contractor = () => {
             <strong>Area:</strong>{" "}
             {item.location?.area} {item.location?.unit}
           </p>
-          <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
-          <p><strong>Bathrooms:</strong> {item.features?.bathrooms}</p>
+          {/* <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
+          <p><strong>Bathrooms:</strong> {item.features?.bathrooms}</p> */}
           <p><strong>Floors:</strong> {item.features?.floors}</p>
-          <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p>
+          {/* <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p> */}
         </Card>
       ))}
     </div>
   ) : (
-    <p>No portfolio properties foundsssssss.</p>
+    <p>No portfolio properties foundss.</p>
   )}
 </Modal>
 

@@ -1,55 +1,40 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
-import User from "./users"; // Placeholder for User Component
-import PropertyDealer from "./propertydealer"; // Placeholder for Property Dealer Component
-import Contractor from "./contractor"; // Placeholder for Contractor Component
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import User from "./users";
+import PropertyDealer from "./propertydealer";
+import Contractor from "./contractor";
 import { LogoutOutlined } from "@ant-design/icons";
-import "./dashboard.css"; // Import your custom CSS
+import "./dashboard.css";
 import DashboardContent from "./dashboardcontent";
 import ContactUs from "./contactus";
 
 const AdminPortal = () => {
   const [activeContent, setActiveContent] = useState("Dashboard");
-  const [displayText, setDisplayText] = useState(""); // State for animated text
-  const navigate = useNavigate(); // Initialize useNavigate
-  const username = localStorage.getItem("username");
+  const navigate = useNavigate();
 
-  // Function to animate the text (typing effect)
-  useEffect(() => {
-    const text = `Hi, ${username}`
-    let index = 0;
-    const interval = setInterval(() => {
-      setDisplayText((prev) => prev + text[index]);
-      index += 1;
-      if (index === text.length) {
-        clearInterval(interval);
-      }
-    }, 100); // Adjust the speed of typing (100 ms per character)
-    return () => clearInterval(interval); // Clean up the interval
-  }, [username]);
-
-  // Function to render the active content
   const renderContent = () => {
     switch (activeContent) {
       case "Dashboard":
-        return <div><DashboardContent/></div>; // Placeholder for Dashboard Content
+        return (
+          <div>
+            <DashboardContent />
+          </div>
+        );
       case "User":
-        return <User />; // Renders User Screen
+        return <User />;
       case "Property Dealer":
-        return <PropertyDealer />; // Renders Property Dealer Screen
+        return <PropertyDealer />;
       case "Contractor":
-        return <Contractor />; // Renders Contractor Screen
+        return <Contractor />;
       case "Contact Us":
-        return <ContactUs />; // Renders Contact Us Screen
+        return <ContactUs />;
       default:
-        return <div>Dashboard Content</div>; // Default Dashboard content
+        return <div>Dashboard Content</div>;
     }
   };
 
   const handleLogout = () => {
-    // Remove token from localStorage
     localStorage.removeItem("token");
-    // Redirect to login page using navigate()
     navigate("/login");
   };
 
@@ -58,7 +43,7 @@ const AdminPortal = () => {
       {/* Sidebar */}
       <div className="sider">
         <div className="sider-header">
-          <h3 style={{ fontStyle: "italic" }}>{displayText}</h3> {/* Animated text */}
+          <h3 style={{ fontStyle: "italic", fontWeight:"bold" }}>Welcome to Prime Ghar Admin Portal</h3> {/* <- Yahan text daal diya */}
         </div>
         <nav className="sider-links">
           {["Dashboard", "User", "Property Dealer", "Contractor", "Contact Us"].map((item) => (

@@ -78,11 +78,29 @@ const PropertyDealer = () => {
   };  
 
   // Handle view dealer click to open modal
-  const handleViewDealer = (dealerId) => {
-    const dealer = dealers.find((dealer) => dealer.id === dealerId);
-    setSelectedDealer(dealer);
-    setIsModalVisible(true);
-  };
+const handleViewDealer = async (dealerId) => {
+  const dealer = dealers.find((dealer) => dealer.id === dealerId);
+  if (dealer) {
+    try {
+      const response = await property.get(`/user/${dealerId}`);
+      const propertyList = Array.isArray(response.data.results)
+        ? response.data.results
+        : Array.isArray(response.data)
+        ? response.data
+        : [];
+
+      // Add totalListings to the dealer
+      const dealerWithListings = { ...dealer, totalListings: propertyList.length };
+
+      setSelectedDealer(dealerWithListings);
+      setIsModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching dealer properties:", error);
+      message.error("Failed to fetch dealer properties.");
+    }
+  }
+};
+
 
   // Handle delete dealer click
   const handleDeleteDealer = async (dealerId) => {
@@ -195,12 +213,12 @@ const PropertyDealer = () => {
               <strong>Total Listed Properties:</strong>{" "}
               {selectedDealer.totalListings}
             </p>
-            <p>
+            {/* <p>
               <strong>Reviews:</strong> {selectedDealer.reviews}
             </p>
             <p>
               <strong>Rating:</strong> {selectedDealer.rating}
-            </p>
+            </p> */}
             <Button type="primary" onClick={handlePortfolioView}>
               View dealer Properties
             </Button>
@@ -317,10 +335,10 @@ const PropertyDealer = () => {
                   <strong>Area:</strong>{" "}
                   {item.location?.area} {item.location?.unit}
                 </p>
-                <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
-                <p><strong>Bathrooms:</strong> {item.features?.bathrooms}</p>
+                {/* <p><strong>Bedrooms:</strong> {item.features?.bedrooms}</p>
+                <p><strong>Bathrooms:</strong> {item.features?.bathrooms}</p> */}
                 <p><strong>Floors:</strong> {item.features?.floors}</p>
-                <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p>
+                {/* <p><strong>Garage:</strong> {item.features?.garage ? "Yes" : "No"}</p> */}
               </Card>
             ))}
           </div>
